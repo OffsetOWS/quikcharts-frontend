@@ -24,6 +24,46 @@
             background: var(--bg-lighter);
             color: var(--text-primary);
             line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Floating sea creatures */
+        .sea-creatures {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .creature {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.15;
+            animation: float-across linear infinite;
+        }
+
+        .whale { font-size: 3rem; }
+        .shark { font-size: 2.5rem; }
+        .shrimp { font-size: 1.5rem; }
+        .snail { font-size: 1.8rem; }
+
+        @keyframes float-across {
+            0% {
+                transform: translateX(-100px) translateY(0);
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(-20px);
+            }
+        }
+
+        nav, .hero, .market-data, footer {
+            position: relative;
+            z-index: 2;
         }
 
         nav {
@@ -116,7 +156,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -153,6 +193,7 @@
             color: var(--bg-lighter);
             font-family: 'Archivo Black', sans-serif;
             font-size: 1.2rem;
+            border-radius: 8px;
         }
 
         .crypto-name h3 {
@@ -256,6 +297,9 @@
     </style>
 </head>
 <body>
+    <!-- Floating sea creatures background -->
+    <div class="sea-creatures" id="seaCreatures"></div>
+
     <nav>
         <div class="logo">QUIKCHART</div>
     </nav>
@@ -287,6 +331,48 @@
     </footer>
 
     <script>
+        // Create floating sea creatures
+        function createSeaCreatures() {
+            const container = document.getElementById('seaCreatures');
+            const creatures = [
+                { emoji: '🐋', class: 'whale', count: 3 },
+                { emoji: '🦈', class: 'shark', count: 4 },
+                { emoji: '🦐', class: 'shrimp', count: 6 },
+                { emoji: '🐌', class: 'snail', count: 3 }
+            ];
+
+            creatures.forEach(creature => {
+                for (let i = 0; i < creature.count; i++) {
+                    const el = document.createElement('div');
+                    el.className = `creature ${creature.class}`;
+                    el.textContent = creature.emoji;
+                    
+                    // Random vertical position
+                    el.style.top = Math.random() * 100 + '%';
+                    
+                    // Random animation duration based on creature type
+                    let duration;
+                    if (creature.class === 'whale') {
+                        duration = 40 + Math.random() * 20; // 40-60s
+                    } else if (creature.class === 'shark') {
+                        duration = 30 + Math.random() * 15; // 30-45s
+                    } else if (creature.class === 'shrimp') {
+                        duration = 20 + Math.random() * 15; // 20-35s
+                    } else {
+                        duration = 35 + Math.random() * 15; // 35-50s (snail)
+                    }
+                    
+                    el.style.animationDuration = duration + 's';
+                    el.style.animationDelay = Math.random() * 10 + 's';
+                    
+                    container.appendChild(el);
+                }
+            });
+        }
+
+        // Initialize sea creatures
+        createSeaCreatures();
+
         // CHANGE THIS TO YOUR RENDER BACKEND URL
         const API_URL = 'https://quikcharts-backend.onrender.com/api/stats';
         
@@ -333,7 +419,8 @@
                 price: parseFloat(listing.mark_price || 0),
                 change: parseFloat(listing.funding_rate_24h || 0) * 100,
                 volume: parseFloat(listing.volume_24h || 0),
-                marketCap: parseFloat(listing.open_interest || 0)
+                marketCap: parseFloat(listing.open_interest || 0),
+                updatedAt: new Date(listing.updated_at || 0).getTime()
             }));
 
             // Filter and sort based on type
@@ -343,12 +430,12 @@
                     .slice(0, 20);
             } else if (type === 'lowest-traded') {
                 listings = listings
-                    .filter(coin => coin.volume >= 1000000)
+                    .filter(coin => coin.volume >= 500000 && coin.volume <= 1200000)
                     .sort((a, b) => a.volume - b.volume)
                     .slice(0, 20);
-            } else {
+            } else if (type === 'newly-added') {
                 listings = listings
-                    .sort((a, b) => b.volume - a.volume)
+                    .sort((a, b) => b.updatedAt - a.updatedAt)
                     .slice(0, 20);
             }
 
