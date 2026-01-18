@@ -338,6 +338,21 @@
             box-shadow: 0 8px 40px rgba(91, 124, 255, 0.2);
         }
 
+        .crypto-card::after {
+            content: '↗';
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .crypto-card:hover::after {
+            opacity: 0.5;
+        }
+
         .crypto-rank {
             font-family: 'JetBrains Mono', monospace;
             font-size: 1.1rem;
@@ -887,9 +902,9 @@
                 listings = listings.sort((a, b) => b.volume - a.volume).slice(0, 20);
             } else if (type === 'lowest-traded') {
                 listings = listings
-                    .filter(coin => coin.volume >= 500000 && coin.volume <= 1200000)
+                    .filter(coin => coin.volume >= 1000 && coin.volume <= 500000)
                     .sort((a, b) => a.volume - b.volume)
-                    .slice(0, 20);
+                    .slice(0, 30);
             } else if (type === 'newly-added') {
                 listings = listings.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 20);
             }
@@ -899,8 +914,15 @@
             for (let index = 0; index < listings.length; index++) {
                 const crypto = listings[index];
                 const isPositive = crypto.change >= 0;
+                
+                // Create Variational trading link
+                const variationalUrl = `https://app.variational.io/trade/${crypto.symbol}`;
+                
                 const card = document.createElement('div');
                 card.className = 'crypto-card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => window.open(variationalUrl, '_blank');
+                
                 card.innerHTML = `
                     <div class="crypto-rank">#${index + 1}</div>
                     <div class="crypto-icon" id="icon-${index}">
